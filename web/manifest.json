@@ -3,8 +3,12 @@
     "short_name": "Kassenrechner",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#2E7D32",
-    "theme_color": "#2E7D32",
+
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "DEACTIVATED-background_color": "#2E7D32",
+    "DEACTIVATED-theme_color": "#2E7D32",
+
     "description": "Kassen zählen leicht gemacht!",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,

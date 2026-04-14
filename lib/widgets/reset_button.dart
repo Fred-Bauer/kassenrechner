@@ -35,7 +35,7 @@ class ResetButton extends StatelessWidget {
     final theme = Theme.of(context);
     final baseColor = isHolding
         ? theme.colorScheme.errorContainer
-        : theme.colorScheme.surfaceContainer;
+        : theme.colorScheme.error.withValues(alpha: 0.3);
 
     return GestureDetector(
       onTapDown: (_) => onTapDown(),

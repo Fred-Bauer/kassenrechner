@@ -13,6 +13,8 @@ class MainApp extends StatelessWidget {
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
         seedColor: const Color(0xFF2E7D32),
+        primaryContainer: const Color(0xFF2E7D32),
+        onPrimaryContainer: Colors.white,
         brightness: Brightness.dark,
       ),
     );
