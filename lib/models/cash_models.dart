@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 class CashCategory {
   const CashCategory({
     required this.title,
-    required this.backgroundColor,
     required this.items,
     this.useValueAsLabel = false,
   });
 
   final String title;
-  final Color backgroundColor;
   final List<CashItem> items;
   final bool useValueAsLabel;
 }

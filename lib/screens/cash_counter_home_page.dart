@@ -20,7 +20,7 @@ class CashCounterHomePage extends StatefulWidget {
 /// Holds counting state and scroll navigation behavior.
 class _CashCounterHomePageState extends State<CashCounterHomePage> {
   /// Duration in milliseconds that user must hold the button to trigger reset.
-  static const int resetHoldDurationMs = 3000;
+  static const int resetHoldDurationMs = 2500;
 
   final ScrollController _scrollController = ScrollController();
   Timer? _resetHoldTimer;

@@ -15,6 +15,7 @@ class CounterRow extends StatefulWidget {
     this.borderColor,
     this.borderWidth,
     this.showValueLine = true,
+    this.isCoin = false,
     required this.onIncrement,
     required this.onDecrement,
     required this.onSetCount,
@@ -27,6 +28,7 @@ class CounterRow extends StatefulWidget {
   final Color? borderColor;
   final double? borderWidth;
   final bool showValueLine;
+  final bool isCoin;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final ValueChanged<int> onSetCount;
@@ -72,6 +74,10 @@ class _CounterRowState extends State<CounterRow> {
 
   /// Opens a dialog to set an exact counter value via keyboard.
   Future<void> _showSetCountDialog(BuildContext context) async {
+    if (widget.isCoin) {
+      return _showCoinSetDialog(context);
+    }
+
     final controller = TextEditingController(text: '${widget.count}');
 
     final result = await showDialog<int>(
@@ -106,7 +112,7 @@ class _CounterRowState extends State<CounterRow> {
                   Navigator.of(context).pop(parsed);
                 }
               },
-              child: const Text('Setzen'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -116,6 +122,102 @@ class _CounterRowState extends State<CounterRow> {
     if (result != null) {
       widget.onSetCount(result);
     }
+  }
+
+  /// Opens a dual-field dialog for coins (sum and count fields).
+  Future<void> _showCoinSetDialog(BuildContext context) async {
+    final sumController = TextEditingController();
+    final countController = TextEditingController(text: '${widget.count}');
+
+    final result = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(widget.title),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: sumController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Summe (€)',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      if (value.isNotEmpty) {
+                        setState(() {
+                          countController.clear();
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: countController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Anzahl',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      if (value.isNotEmpty) {
+                        setState(() {
+                          sumController.clear();
+                        });
+                      }
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Abbrechen'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final sumText = sumController.text.trim();
+                final countText = countController.text.trim();
+
+                int parsed = 0;
+
+                if (sumText.isNotEmpty) {
+                  // Sum was entered, calculate count from it
+                  final sum = double.tryParse(sumText);
+                  if (sum != null && sum >= 0) {
+                    parsed = (sum / widget.value).round();
+                  } else {
+                    return;
+                  }
+                } else if (countText.isNotEmpty) {
+                  // Count was entered
+                  parsed = int.tryParse(countText) ?? 0;
+                  if (parsed < 0) {
+                    return;
+                  }
+                }
+
+                Navigator.of(context).pop(parsed);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null) {
+      widget.onSetCount(result);
+    }
+
   }
 
   @override

@@ -6,7 +6,6 @@ import '../models/cash_models.dart';
 const List<CashCategory> cashCategories = [
   CashCategory(
     title: 'Rollen',
-    backgroundColor: Color(0xFFA78BDA),
     items: [
       CashItem(id: 'rollen_2', label: '2€ Rolle', value: 100.0, cardColor: Color(0xFF6F42C1)),
       CashItem(id: 'rollen_1', label: '1€ Rolle', value: 50.0, cardColor: Color(0xFF2E7D32)),
@@ -20,7 +19,6 @@ const List<CashCategory> cashCategories = [
   ),
   CashCategory(
     title: 'Scheine',
-    backgroundColor: Color(0xFFE7F4FF),
     useValueAsLabel: true,
     items: [
       CashItem(id: 'schein_500', label: '500€ Schein', value: 500.0, cardColor: Color(0xFF7D3C98)),
@@ -34,7 +32,6 @@ const List<CashCategory> cashCategories = [
   ),
   CashCategory(
     title: 'Münzen',
-    backgroundColor: Color(0xFFFFF4E8),
     useValueAsLabel: true,
     items: [
       CashItem(
