@@ -43,6 +43,7 @@ String buildReceiptText({
 
   lines.add(receiptDivider);
   lines.add('GESAMT: ${formatCurrency(totalValue)}');
+  lines.add('GESAMT-1500: ${formatCurrency(totalValue - 1500)}');
 
   return lines.join('\n');
 }
