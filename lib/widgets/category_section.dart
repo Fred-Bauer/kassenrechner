@@ -100,12 +100,14 @@ class CategorySection extends StatelessWidget {
           // Render as paired rows so specific items can span full width.
           LayoutBuilder(
             builder: (context, constraints) {
-              // On very small devices, switch to one column to avoid clipped labels.
-              final isNarrow = constraints.maxWidth < 420;
-              final tileAspectRatio = isNarrow ? 3.6 : 1.95;
+              // Only use one-column mode in real emergency width situations.
+              final isEmergencyWidth = constraints.maxWidth < 320;
+              final useSingleColumn = isEmergencyWidth && category.title == 'Rollen';
+              // Outside emergency mode, keep two columns and only make tiles a bit taller.
+              final tileAspectRatio = constraints.maxWidth < 360 ? 1.75 : 1.95;
               final rows = <Widget>[];
 
-              if (isNarrow) {
+              if (useSingleColumn) {
                 for (final item in sortedItems) {
                   final itemTitle = category.useValueAsLabel
                       ? formatValueLabel(item.value)
