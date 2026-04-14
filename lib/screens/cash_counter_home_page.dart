@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/cash_categories.dart';
 import '../utils/receipt_formatter.dart';
 import '../widgets/category_section.dart';
+import '../widgets/reset_button.dart';
 import '../widgets/total_header.dart';
 
 /// Main counting screen with section scrolling and total updates.
@@ -16,7 +19,14 @@ class CashCounterHomePage extends StatefulWidget {
 
 /// Holds counting state and scroll navigation behavior.
 class _CashCounterHomePageState extends State<CashCounterHomePage> {
+  /// Duration in milliseconds that user must hold the button to trigger reset.
+  static const int resetHoldDurationMs = 3000;
+
   final ScrollController _scrollController = ScrollController();
+  Timer? _resetHoldTimer;
+  Timer? _resetProgressTimer;
+  DateTime? _resetStartTime;
+  double _resetProgress = 0.0;
   final List<GlobalKey> _sectionKeys = List<GlobalKey>.generate(
     cashCategories.length,
     (_) => GlobalKey(),
@@ -24,6 +34,7 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
 
   final Map<String, int> _counts = <String, int>{};
   int _currentSection = 0;
+  bool _isResetHolding = false;
 
   @override
   void initState() {
@@ -40,6 +51,8 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
 
   @override
   void dispose() {
+    _resetHoldTimer?.cancel();
+    _resetProgressTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -91,6 +104,65 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
         content: Text('Rechnung wurde in die Zwischenablage kopiert.'),
       ),
     );
+  }
+
+  /// Starts a long hold gesture that resets the complete calculation.
+  void _startResetHold() {
+    _resetHoldTimer?.cancel();
+    _resetProgressTimer?.cancel();
+    _resetStartTime = DateTime.now();
+    setState(() {
+      _isResetHolding = true;
+      _resetProgress = 0.0;
+    });
+
+    // Progress ticker: updates every 16ms for smooth animation
+    _resetProgressTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
+      if (!_isResetHolding || !mounted) {
+        _resetProgressTimer?.cancel();
+        return;
+      }
+
+      final elapsed =
+          DateTime.now().difference(_resetStartTime!).inMilliseconds;
+      final progress = (elapsed / resetHoldDurationMs).clamp(0.0, 1.0);
+
+      setState(() {
+        _resetProgress = progress;
+      });
+    });
+
+    _resetHoldTimer = Timer(Duration(milliseconds: resetHoldDurationMs), () {
+      if (!mounted) {
+        return;
+      }
+      _resetProgressTimer?.cancel();
+
+      setState(() {
+        for (final key in _counts.keys) {
+          _counts[key] = 0;
+        }
+        _isResetHolding = false;
+        _resetProgress = 0.0;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Rechnung wurde zurückgesetzt.')),
+      );
+    });
+  }
+
+  /// Cancels the reset hold when the user releases too early.
+  void _cancelResetHold() {
+    _resetHoldTimer?.cancel();
+    _resetProgressTimer?.cancel();
+    if (!_isResetHolding) {
+      return;
+    }
+    setState(() {
+      _isResetHolding = false;
+      _resetProgress = 0.0;
+    });
   }
 
   /// Smooth-scrolls to the requested section card by index.
@@ -168,8 +240,18 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
                     child: ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 112),
-                      itemCount: cashCategories.length,
+                      itemCount: cashCategories.length + 1,
                       itemBuilder: (context, index) {
+                        if (index == cashCategories.length) {
+                          return ResetButton(
+                            isHolding: _isResetHolding,
+                            progress: _resetProgress,
+                            onTapDown: _startResetHold,
+                            onTapUp: _cancelResetHold,
+                            onTapCancel: _cancelResetHold,
+                          );
+                        }
+
                         final category = cashCategories[index];
                         return CategorySection(
                           key: _sectionKeys[index],
