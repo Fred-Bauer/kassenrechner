@@ -19,4 +19,4 @@ Tatsächlich ja.
 - [x] Navigationsknöpfe entfernen
 - [ ] Münzen rund anzeigen?
 - [x] Sehr breiter Screen: Kategorien nebeneinander
-- [ ] Uh und vielleicht kannst du das kassenicon ein bisschen kleiner machen? Damit es nicht abgeschnitten ist? 👉👈😅
+- [x] Uh und vielleicht kannst du das kassenicon ein bisschen kleiner machen? Damit es nicht abgeschnitten ist? 👉👈😅

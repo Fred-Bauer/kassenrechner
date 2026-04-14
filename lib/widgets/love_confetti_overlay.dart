@@ -12,8 +12,8 @@ class LoveConfettiOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Positioned.fill(
+    return Positioned.fill(
+      child: IgnorePointer(
         child: Align(
           alignment: Alignment.topCenter,
           child: ConfettiWidget(
