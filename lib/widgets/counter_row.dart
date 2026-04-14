@@ -264,7 +264,7 @@ class _CounterRowState extends State<CounterRow> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '= ${formatCurrency(widget.value)}',
+                      '(${formatCurrency(widget.value)})',
                       textAlign: TextAlign.right,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
