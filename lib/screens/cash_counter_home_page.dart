@@ -11,7 +11,7 @@ import '../widgets/love_confetti_overlay.dart';
 import '../widgets/reset_button.dart';
 import '../widgets/total_header.dart';
 
-/// Main counting screen with section scrolling and total updates.
+/// Main counting screen with total updates.
 class CashCounterHomePage extends StatefulWidget {
   const CashCounterHomePage({super.key});
 
@@ -19,7 +19,7 @@ class CashCounterHomePage extends StatefulWidget {
   State<CashCounterHomePage> createState() => _CashCounterHomePageState();
 }
 
-/// Holds counting state and scroll navigation behavior.
+/// Holds counting state and interaction behavior.
 class _CashCounterHomePageState extends State<CashCounterHomePage> {
   /// Duration in milliseconds that user must hold the button to trigger reset.
   static const int resetHoldDurationMs = 2500;
@@ -31,7 +31,6 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
   static const int easterEggTextExtendMs = 1000;
   static const String easterEggMessage = '♥️ Hab dich lieb Fiene <3 ♥️';
 
-  final ScrollController _scrollController = ScrollController();
   Timer? _resetHoldTimer;
   Timer? _resetProgressTimer;
   Timer? _easterEggTextHideTimer;
@@ -40,13 +39,8 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
   DateTime? _easterEggTextVisibleUntil;
   late final ConfettiController _confettiController;
   double _resetProgress = 0.0;
-  final List<GlobalKey> _sectionKeys = List<GlobalKey>.generate(
-    cashCategories.length,
-    (_) => GlobalKey(),
-  );
 
   final Map<String, int> _counts = <String, int>{};
-  int _currentSection = 0;
   int _headerTapStreak = 0;
   bool _isResetHolding = false;
   bool _showEasterEgg = false;
@@ -61,9 +55,6 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
         _counts[item.id] = 0;
       }
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateCurrentSectionFromScroll();
-    });
   }
 
   @override
@@ -72,7 +63,6 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     _resetProgressTimer?.cancel();
     _easterEggTextHideTimer?.cancel();
     _confettiController.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -247,119 +237,30 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     });
   }
 
-  /// Smooth-scrolls to the requested section card by index.
-  void _scrollToSection(int index) {
-    if (index < 0 || index >= _sectionKeys.length) {
-      return;
-    }
-    final context = _sectionKeys[index].currentContext;
-    if (context == null) {
-      return;
-    }
-    setState(() {
-      _currentSection = index;
-    });
-    Scrollable.ensureVisible(
-      context,
-      alignment: 0.02,
-      duration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
-    );
-  }
-
-  /// Tracks which section is currently closest to the viewport top.
-  void _updateCurrentSectionFromScroll() {
-    var bestIndex = _currentSection;
-    var bestDistance = double.infinity;
-
-    for (var i = 0; i < _sectionKeys.length; i++) {
-      final sectionContext = _sectionKeys[i].currentContext;
-      if (sectionContext == null) {
-        continue;
-      }
-      final box = sectionContext.findRenderObject() as RenderBox?;
-      if (box == null || !box.attached) {
-        continue;
-      }
-
-      final position = box.localToGlobal(Offset.zero);
-      final distance = (position.dy - 130).abs();
-
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestIndex = i;
-      }
-    }
-
-    if (bestIndex != _currentSection) {
-      setState(() {
-        _currentSection = bestIndex;
-      });
-    }
-  }
-
   Widget _buildNarrowLayout() {
-    final canGoUp = _currentSection > 0;
-    final canGoDown = _currentSection < cashCategories.length - 1;
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 112),
+      itemCount: cashCategories.length + 1,
+      itemBuilder: (context, index) {
+        if (index == cashCategories.length) {
+          return ResetButton(
+            isHolding: _isResetHolding,
+            progress: _resetProgress,
+            onTapDown: _startResetHold,
+            onTapUp: _cancelResetHold,
+            onTapCancel: _cancelResetHold,
+          );
+        }
 
-    return Stack(
-      children: [
-        NotificationListener<ScrollUpdateNotification>(
-          onNotification: (notification) {
-            _updateCurrentSectionFromScroll();
-            return false;
-          },
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 112),
-            itemCount: cashCategories.length + 1,
-            itemBuilder: (context, index) {
-              if (index == cashCategories.length) {
-                return ResetButton(
-                  isHolding: _isResetHolding,
-                  progress: _resetProgress,
-                  onTapDown: _startResetHold,
-                  onTapUp: _cancelResetHold,
-                  onTapCancel: _cancelResetHold,
-                );
-              }
-
-              final category = cashCategories[index];
-              return CategorySection(
-                key: _sectionKeys[index],
-                category: category,
-                counts: _counts,
-                onIncrement: (id) => _changeCount(id, 1),
-                onDecrement: (id) => _changeCount(id, -1),
-                onSetCount: _setCount,
-              );
-            },
-          ),
-        ),
-        Positioned(
-          right: 16,
-          bottom: 20,
-          child: Column(
-            children: [
-              FloatingActionButton.small(
-                heroTag: 'scroll-up',
-                onPressed: canGoUp
-                    ? () => _scrollToSection(_currentSection - 1)
-                    : null,
-                child: const Icon(Icons.keyboard_arrow_up_rounded),
-              ),
-              const SizedBox(height: 10),
-              FloatingActionButton.small(
-                heroTag: 'scroll-down',
-                onPressed: canGoDown
-                    ? () => _scrollToSection(_currentSection + 1)
-                    : null,
-                child: const Icon(Icons.keyboard_arrow_down_rounded),
-              ),
-            ],
-          ),
-        ),
-      ],
+        final category = cashCategories[index];
+        return CategorySection(
+          category: category,
+          counts: _counts,
+          onIncrement: (id) => _changeCount(id, 1),
+          onDecrement: (id) => _changeCount(id, -1),
+          onSetCount: _setCount,
+        );
+      },
     );
   }
 
@@ -379,7 +280,6 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
                       right: i == cashCategories.length - 1 ? 0 : 6,
                     ),
                     child: CategorySection(
-                      key: _sectionKeys[i],
                       category: cashCategories[i],
                       counts: _counts,
                       onIncrement: (id) => _changeCount(id, 1),

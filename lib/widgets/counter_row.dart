@@ -16,6 +16,7 @@ class CounterRow extends StatefulWidget {
     this.borderWidth,
     this.showValueLine = true,
     this.isCoin = false,
+    this.isRoll = false,
     required this.onIncrement,
     required this.onDecrement,
     required this.onSetCount,
@@ -29,6 +30,7 @@ class CounterRow extends StatefulWidget {
   final double? borderWidth;
   final bool showValueLine;
   final bool isCoin;
+  final bool isRoll;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final ValueChanged<int> onSetCount;
@@ -272,34 +274,68 @@ class _CounterRowState extends State<CounterRow> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Label is intentionally larger and centered for fast scanning.
-                Expanded(
-                  child: Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        widget.title,
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 24,
-                          color: textColor,
+                if (widget.isRoll && widget.showValueLine) ...[
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.left,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 24,
+                                color: textColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            formatCurrency(widget.value),
+                            textAlign: TextAlign.right,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: subTextColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  // Label is intentionally larger and centered for fast scanning.
+                  Expanded(
+                    child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          widget.title,
+                          maxLines: 1,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 24,
+                            color: textColor,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                if (widget.showValueLine) ...[
-                  const SizedBox(height: 1),
-                  Text(
-                    formatCurrency(widget.value),
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontSize: 11,
-                      color: subTextColor,
+                  if (widget.showValueLine) ...[
+                    const SizedBox(height: 1),
+                    Text(
+                      formatCurrency(widget.value),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 11,
+                        color: subTextColor,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
                 // Bottom row: restore horizontal + bottom padding for ring coins.
                 Padding(

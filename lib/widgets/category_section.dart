@@ -39,6 +39,7 @@ class CategorySection extends StatelessWidget {
         borderWidth: item.borderWidth,
         showValueLine: !category.useValueAsLabel,
         isCoin: category.title == 'Münzen',
+        isRoll: category.title == 'Rollen',
         onIncrement: () => onIncrement(item.id),
         onDecrement: () => onDecrement(item.id),
         onSetCount: (count) => onSetCount(item.id, count),
