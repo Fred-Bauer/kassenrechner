@@ -20,4 +20,4 @@ Tatsächlich ja.
 - [ ] Münzen rund anzeigen?
 - [x] Sehr breiter Screen: Kategorien nebeneinander
 - [x] Uh und vielleicht kannst du das kassenicon ein bisschen kleiner machen? Damit es nicht abgeschnitten ist? 👉👈😅
-- [ ] -1500
+- [x] -1500

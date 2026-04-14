@@ -7,15 +7,21 @@ class TotalHeader extends StatelessWidget {
   const TotalHeader({
     super.key,
     required this.totalValue,
+    this.onTap,
     this.onTapDown,
     this.onLongPress,
     this.centerMessage,
+    this.subtractAmount,
   });
 
   final double totalValue;
+  final VoidCallback? onTap;
   final VoidCallback? onTapDown;
   final VoidCallback? onLongPress;
   final String? centerMessage;
+
+  /// When set, subtracts this amount from [totalValue] and adjusts the label.
+  final double? subtractAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +29,7 @@ class TotalHeader extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTapDown: onTapDown != null ? (_) => onTapDown!() : null,
+      child: InkWell(        onTap: onTap,        onTapDown: onTapDown != null ? (_) => onTapDown!() : null,
         onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -56,16 +61,26 @@ class TotalHeader extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'GESAMT',
+                        subtractAmount != null
+                            ? 'GESAMT – ${formatCurrency(subtractAmount!)}'
+                            : 'GESAMT',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer,
+                          color: subtractAmount != null
+                              ? theme.colorScheme.onSecondaryContainer
+                              : theme.colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       Text(
-                        formatCurrency(totalValue),
+                        formatCurrency(
+                          subtractAmount != null
+                              ? totalValue - subtractAmount!
+                              : totalValue,
+                        ),
                         style: theme.textTheme.headlineSmall?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer,
+                          color: subtractAmount != null
+                              ? theme.colorScheme.onSecondaryContainer
+                              : theme.colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.w800,
                         ),
                       ),

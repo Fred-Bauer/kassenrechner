@@ -7,14 +7,14 @@ const List<CashCategory> cashCategories = [
   CashCategory(
     title: 'Rollen',
     items: [
-      CashItem(id: 'rollen_2', label: '2€ Rolle', value: 50.0, cardColor: Color(0xFF6F42C1)),
-      CashItem(id: 'rollen_1', label: '1€ Rolle', value: 25.0, cardColor: Color(0xFFFDD835)),
-      CashItem(id: 'rollen_50c', label: '50ct Rolle', value: 20.0, cardColor: Color(0xFF2E7D32)),
-      CashItem(id: 'rollen_20c', label: '20ct Rolle', value: 8.0, cardColor: Color(0xFFE67E22)),
-      CashItem(id: 'rollen_10c', label: '10ct Rolle', value: 4.0, cardColor: Color(0xFF1E88E5)),
-      CashItem(id: 'rollen_5c', label: '5ct Rolle', value: 2.5, cardColor: Color(0xFFEF5350)),
-      CashItem(id: 'rollen_2c', label: '2ct Rolle', value: 1.0, cardColor: Color(0xFF90A4AE)),
-      CashItem(id: 'rollen_1c', label: '1ct Rolle', value: 0.5, cardColor: Color(0xFFECEFF1)),
+      CashItem(id: 'rollen_2', label: '2€', value: 50.0, cardColor: Color(0xFF6F42C1)),
+      CashItem(id: 'rollen_1', label: '1€', value: 25.0, cardColor: Color(0xFFFDD835)),
+      CashItem(id: 'rollen_50c', label: '50ct', value: 20.0, cardColor: Color(0xFF2E7D32)),
+      CashItem(id: 'rollen_20c', label: '20ct', value: 8.0, cardColor: Color(0xFFE67E22)),
+      CashItem(id: 'rollen_10c', label: '10ct', value: 4.0, cardColor: Color(0xFF1E88E5)),
+      CashItem(id: 'rollen_5c', label: '5ct', value: 2.5, cardColor: Color(0xFFEF5350)),
+      CashItem(id: 'rollen_2c', label: '2ct', value: 1.0, cardColor: Color(0xFF90A4AE)),
+      CashItem(id: 'rollen_1c', label: '1ct', value: 0.5, cardColor: Color(0xFFECEFF1)),
     ],
   ),
   CashCategory(

@@ -21,6 +21,7 @@ class CashCounterHomePage extends StatefulWidget {
 class _CashCounterHomePageState extends State<CashCounterHomePage> {
   late final CashCounterNotifier _notifier;
   late final EasterEggController _easterEgg;
+  bool _deductMode = false;
 
   @override
   void initState() {
@@ -35,6 +36,8 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     _easterEgg.dispose();
     super.dispose();
   }
+
+  void _toggleDeductMode() => setState(() => _deductMode = !_deductMode);
 
   void _onResetComplete() {
     if (!mounted) return;
@@ -76,10 +79,12 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
                   listenable: Listenable.merge([_notifier, _easterEgg]),
                   builder: (context, _) => TotalHeader(
                     totalValue: _notifier.totalValue,
+                    onTap: _toggleDeductMode,
                     onTapDown: _easterEgg.handleTap,
                     onLongPress: _copyReceiptToClipboard,
                     centerMessage:
                         _easterEgg.showEasterEgg ? EasterEggController.message : null,
+                    subtractAmount: _deductMode ? 1500.0 : null,
                   ),
                 ),
                 Expanded(

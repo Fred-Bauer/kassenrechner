@@ -15,6 +15,7 @@ class MainApp extends StatelessWidget {
         seedColor: const Color(0xFF2E7D32),
         primaryContainer: const Color(0xFF2E7D32),
         onPrimaryContainer: Colors.white,
+        onSecondaryContainer: const Color(0xFFB5E3B7),
         brightness: Brightness.dark,
       ),
     );
