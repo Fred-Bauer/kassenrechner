@@ -234,6 +234,10 @@ class _CounterRowState extends State<CounterRow> {
     final resolvedBorderColor =
       widget.borderColor ?? Colors.white.withValues(alpha: 0.5);
     final resolvedBorderWidth = widget.borderWidth ?? 1.0;
+    // Coins with a thick ring border get zero outer padding so the label can
+    // fill the full tile area including the ring, making it visually larger.
+    // The bottom row gets its own horizontal padding to stay tidy.
+    final hasRingBorder = widget.borderColor != null;
 
     return AnimatedScale(
       scale: _scale,
@@ -256,7 +260,7 @@ class _CounterRowState extends State<CounterRow> {
           splashColor: Colors.white.withValues(alpha: 0.15),
           highlightColor: Colors.transparent,
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: hasRingBorder ? EdgeInsets.zero : const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: baseColor,
               borderRadius: BorderRadius.circular(10),
@@ -297,46 +301,50 @@ class _CounterRowState extends State<CounterRow> {
                     ),
                   ),
                 ],
-                const SizedBox(height: 4),
-                // Count and sum are grouped for quicker readout.
-                Row(
-                  children: [
-                    IconButton.filledTonal(
-                      onPressed: () {
-                        widget.onDecrement();
-                        _hapticSelection();
-                      },
-                      icon: const Icon(Icons.remove),
-                      visualDensity: VisualDensity.compact,
-                      constraints: const BoxConstraints.tightFor(width: 34, height: 34),
-                      style: IconButton.styleFrom(
-                        shape: const CircleBorder(),
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Colors.white.withValues(alpha: 0.88),
-                        foregroundColor: Colors.black87,
+                // Bottom row: restore horizontal + bottom padding for ring coins.
+                Padding(
+                  padding: hasRingBorder
+                      ? const EdgeInsets.fromLTRB(8, 0, 8, 8)
+                      : const EdgeInsets.only(top: 4),
+                  child: Row(
+                    children: [
+                      IconButton.filledTonal(
+                        onPressed: () {
+                          widget.onDecrement();
+                          _hapticSelection();
+                        },
+                        icon: const Icon(Icons.remove),
+                        visualDensity: VisualDensity.compact,
+                        constraints: const BoxConstraints.tightFor(width: 34, height: 34),
+                        style: IconButton.styleFrom(
+                          shape: const CircleBorder(),
+                          padding: EdgeInsets.zero,
+                          backgroundColor: Colors.white.withValues(alpha: 0.88),
+                          foregroundColor: Colors.black87,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${widget.count}x',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 20,
-                        color: textColor,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        formatCurrency(rowSum),
-                        textAlign: TextAlign.right,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+                      const SizedBox(width: 6),
+                      Text(
+                        '${widget.count}x',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 20,
                           color: textColor,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          formatCurrency(rowSum),
+                          textAlign: TextAlign.right,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: textColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

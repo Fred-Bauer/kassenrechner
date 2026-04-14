@@ -13,7 +13,7 @@ Tatsächlich ja.
 - [x] Bei den Rollen sind 2 € Rollen = 50 € und 1€ Rollen = 25 € (und das Color coding ist nicht ganz richtig, aber das ist nur mein innerer Monk)
 - [x] Gibt es einen reset Button? Wenn ich zum Beispiel abends neu zähle?
 - [ ] Anzeige auf sehr kleinen Geräten: Rollen - zu kleine Schrift
-- [ ] 1€ und 2€ Schrift über Rand
+- [x] 1€ und 2€ Schrift über Rand
 - [ ] Copy to Clipboard bei langem Drücken auf iOS scheint nicht zu funktionieren
 - [ ] Navigationsknöpfe entfernen
 - [ ] Münzen rund anzeigen?
