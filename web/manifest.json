@@ -1,6 +1,6 @@
 {
-    "name": "kassenrechner",
-    "short_name": "kassenrechner",
+    "name": "Kassenrechner",
+    "short_name": "Kassenrechner",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#2E7D32",

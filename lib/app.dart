@@ -19,6 +19,7 @@ class MainApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: 'Kassenrechner',
       theme: baseTheme.copyWith(
         scaffoldBackgroundColor: Colors.black,
         canvasColor: Colors.black,

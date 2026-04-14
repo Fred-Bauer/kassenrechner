@@ -276,16 +276,20 @@ class _CounterRowState extends State<CounterRow> {
                 width: resolvedBorderWidth,
               ),
             ),
-            child: Stack(
-              children: [
-                Padding(
-                  padding: contentPadding,
-                  child: Transform.scale(
-                    scale: contentScale,
-                    alignment: Alignment.center,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
+            foregroundDecoration: widget.count == 0
+                ? BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(10),
+                  )
+                : null,
+            child: Padding(
+              padding: contentPadding,
+              child: Transform.scale(
+                scale: contentScale,
+                alignment: Alignment.center,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                   if (widget.isRoll && widget.showValueLine) ...[
                     Expanded(
                       child: Transform.translate(
@@ -402,22 +406,9 @@ class _CounterRowState extends State<CounterRow> {
                     ),
                     ),
                   ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
-                if (widget.count == 0)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
           ),
         ),
