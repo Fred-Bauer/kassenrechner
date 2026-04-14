@@ -27,7 +27,7 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
   static const int easterEggTapCount = 5;
   static const int easterEggTapWindowMs = 250;
   static const int easterEggConfettiDurationMs = 400;
-  static const int easterEggInitialTextDurationMs = 5000;
+  static const int easterEggInitialTextDurationMs = 3000;
   static const int easterEggTextExtendMs = 1000;
   static const String easterEggMessage = '♥️ Hab dich lieb Fiene <3 ♥️';
 

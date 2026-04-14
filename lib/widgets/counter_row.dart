@@ -308,10 +308,12 @@ class _CounterRowState extends State<CounterRow> {
                   ),
                 ] else ...[
                   // Label is intentionally larger and centered for fast scanning.
+                  // Ring-border coins use BoxFit.contain to scale UP and visually
+                  // fill through the ring, matching a real coin face appearance.
                   Expanded(
                     child: Center(
                       child: FittedBox(
-                        fit: BoxFit.scaleDown,
+                        fit: hasRingBorder ? BoxFit.contain : BoxFit.scaleDown,
                         child: Text(
                           widget.title,
                           maxLines: 1,
@@ -337,10 +339,11 @@ class _CounterRowState extends State<CounterRow> {
                     ),
                   ],
                 ],
-                // Bottom row: restore horizontal + bottom padding for ring coins.
+                // Bottom row: ring coins use no horizontal padding so content
+                // reaches the ring border on both sides.
                 Padding(
                   padding: hasRingBorder
-                      ? const EdgeInsets.fromLTRB(8, 0, 8, 8)
+                      ? const EdgeInsets.only(bottom: 8)
                       : const EdgeInsets.only(top: 4),
                   child: Row(
                     children: [
