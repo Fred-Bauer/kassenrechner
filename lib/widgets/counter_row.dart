@@ -276,6 +276,8 @@ class _CounterRowState extends State<CounterRow> {
                 width: resolvedBorderWidth,
               ),
             ),
+            // foregroundDecoration draws on top of all children including the ring border,
+            // which ensures the veil fully covers 1€/2€ ring coins when count is 0.
             foregroundDecoration: widget.count == 0
                 ? BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.5),

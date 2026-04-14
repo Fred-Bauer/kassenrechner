@@ -24,10 +24,15 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
   /// Duration in milliseconds that user must hold the button to trigger reset.
   static const int resetHoldDurationMs = 2500;
 
+  /// Number of taps on the header required to trigger the easter egg.
   static const int easterEggTapCount = 5;
+  /// Maximum gap in ms between consecutive taps that still count as a streak.
   static const int easterEggTapWindowMs = 250;
+  /// How long the confetti animation plays after triggering.
   static const int easterEggConfettiDurationMs = 400;
+  /// How long the love message stays visible after the first trigger.
   static const int easterEggInitialTextDurationMs = 3000;
+  /// How many extra ms each subsequent tap adds to the message visibility.
   static const int easterEggTextExtendMs = 1000;
   static const String easterEggMessage = '♥️ Hab dich lieb Fiene <3 ♥️';
 
@@ -66,6 +71,7 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     super.dispose();
   }
 
+  /// Detects rapid repeated taps on the header to unlock the easter egg.
   void _handleHeaderTap() {
     if (_showEasterEgg) {
       _handleTapDuringEasterEggText();
@@ -84,6 +90,7 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     }
   }
 
+  /// Resets the tap streak and starts confetti + message display.
   void _triggerEasterEgg() {
     _headerTapStreak = 0;
     _lastHeaderTapAt = null;
@@ -94,6 +101,7 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     );
   }
 
+  /// Replays confetti and extends message time when tapped while already active.
   void _handleTapDuringEasterEggText() {
     _confettiController.stop();
     _confettiController.play();
@@ -102,6 +110,7 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     );
   }
 
+  /// Pushes the message hide time forward by [extension] from the current deadline.
   void _extendEasterEggTextBy(Duration extension) {
     final now = DateTime.now();
     final base = _easterEggTextVisibleUntil != null &&
@@ -246,6 +255,7 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     });
   }
 
+  /// Single-column scrollable layout for narrow screens.
   Widget _buildNarrowLayout() {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 112),
@@ -273,6 +283,7 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     );
   }
 
+  /// Three-column side-by-side layout for screens wider than 1200 px.
   Widget _buildWideLayout() {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
