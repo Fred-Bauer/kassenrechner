@@ -219,7 +219,6 @@ class _CounterRowState extends State<CounterRow> {
     if (result != null) {
       widget.onSetCount(result);
     }
-
   }
 
   @override
@@ -236,10 +235,17 @@ class _CounterRowState extends State<CounterRow> {
     final resolvedBorderColor =
       widget.borderColor ?? Colors.white.withValues(alpha: 0.5);
     final resolvedBorderWidth = widget.borderWidth ?? 1.0;
-    // Coins with a thick ring border get zero outer padding so the label can
-    // fill the full tile area including the ring, making it visually larger.
-    // The bottom row gets its own horizontal padding to stay tidy.
+    // 1 EUR / 2 EUR ring coins intentionally render larger so text and controls
+    // can visually overlap into the ring area.
     final hasRingBorder = widget.borderColor != null;
+    final contentScale = hasRingBorder ? 1.05 : 1.0;
+    final contentPadding = hasRingBorder ? EdgeInsets.zero : const EdgeInsets.all(8);
+    final labelFit = hasRingBorder ? BoxFit.contain : BoxFit.scaleDown;
+    final bottomPadding = hasRingBorder
+      ? const EdgeInsets.only(bottom: 8)
+      : const EdgeInsets.only(top: 4);
+    final topOverflowShift = hasRingBorder ? -3.0 : 0.0;
+    final bottomOverflowShift = hasRingBorder ? 10.0 : 0.0;
 
     return AnimatedScale(
       scale: _scale,
@@ -262,7 +268,7 @@ class _CounterRowState extends State<CounterRow> {
           splashColor: Colors.white.withValues(alpha: 0.15),
           highlightColor: Colors.transparent,
           child: Container(
-            padding: hasRingBorder ? EdgeInsets.zero : const EdgeInsets.all(8),
+            padding: contentPadding,
             decoration: BoxDecoration(
               color: baseColor,
               borderRadius: BorderRadius.circular(10),
@@ -271,21 +277,59 @@ class _CounterRowState extends State<CounterRow> {
                 width: resolvedBorderWidth,
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (widget.isRoll && widget.showValueLine) ...[
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Row(
-                        children: [
-                          Expanded(
+            child: Transform.scale(
+              scale: contentScale,
+              alignment: Alignment.center,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (widget.isRoll && widget.showValueLine) ...[
+                    Expanded(
+                      child: Transform.translate(
+                        offset: Offset(0, topOverflowShift),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  widget.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.left,
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 24,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                formatCurrency(widget.value),
+                                textAlign: TextAlign.right,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: subTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    // Label is intentionally larger and centered for fast scanning.
+                    Expanded(
+                      child: Transform.translate(
+                        offset: Offset(0, topOverflowShift),
+                        child: Center(
+                          child: FittedBox(
+                            fit: labelFit,
                             child: Text(
                               widget.title,
                               maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.left,
+                              textAlign: TextAlign.center,
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 24,
@@ -293,99 +337,70 @@ class _CounterRowState extends State<CounterRow> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            formatCurrency(widget.value),
-                            textAlign: TextAlign.right,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: subTextColor,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ] else ...[
-                  // Label is intentionally larger and centered for fast scanning.
-                  // Ring-border coins use BoxFit.contain to scale UP and visually
-                  // fill through the ring, matching a real coin face appearance.
-                  Expanded(
-                    child: Center(
-                      child: FittedBox(
-                        fit: hasRingBorder ? BoxFit.contain : BoxFit.scaleDown,
+                    if (widget.showValueLine) ...[
+                      Transform.translate(
+                        offset: Offset(0, topOverflowShift),
                         child: Text(
-                          widget.title,
-                          maxLines: 1,
+                          formatCurrency(widget.value),
                           textAlign: TextAlign.center,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 24,
-                            color: textColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (widget.showValueLine) ...[
-                    const SizedBox(height: 1),
-                    Text(
-                      formatCurrency(widget.value),
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        color: subTextColor,
-                      ),
-                    ),
-                  ],
-                ],
-                // Bottom row: ring coins use no horizontal padding so content
-                // reaches the ring border on both sides.
-                Padding(
-                  padding: hasRingBorder
-                      ? const EdgeInsets.only(bottom: 8)
-                      : const EdgeInsets.only(top: 4),
-                  child: Row(
-                    children: [
-                      IconButton.filledTonal(
-                        onPressed: () {
-                          widget.onDecrement();
-                          _hapticSelection();
-                        },
-                        icon: const Icon(Icons.remove),
-                        visualDensity: VisualDensity.compact,
-                        constraints: const BoxConstraints.tightFor(width: 34, height: 34),
-                        style: IconButton.styleFrom(
-                          shape: const CircleBorder(),
-                          padding: EdgeInsets.zero,
-                          backgroundColor: Colors.white.withValues(alpha: 0.88),
-                          foregroundColor: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${widget.count}x',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 20,
-                          color: textColor,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          formatCurrency(rowSum),
-                          textAlign: TextAlign.right,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: textColor,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 11,
+                            color: subTextColor,
                           ),
                         ),
                       ),
                     ],
+                  ],
+                  Transform.translate(
+                    offset: Offset(0, bottomOverflowShift),
+                    child: Padding(
+                      padding: bottomPadding,
+                      child: Row(
+                      children: [
+                        IconButton.filledTonal(
+                          onPressed: () {
+                            widget.onDecrement();
+                            _hapticSelection();
+                          },
+                          icon: const Icon(Icons.remove),
+                          visualDensity: VisualDensity.compact,
+                          constraints: const BoxConstraints.tightFor(width: 34, height: 34),
+                          style: IconButton.styleFrom(
+                            shape: const CircleBorder(),
+                            padding: EdgeInsets.zero,
+                            backgroundColor: Colors.white.withValues(alpha: 0.88),
+                            foregroundColor: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${widget.count}x',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 20,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            formatCurrency(rowSum),
+                            textAlign: TextAlign.right,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: textColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
