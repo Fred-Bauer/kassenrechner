@@ -1,17 +1,16 @@
-import 'dart:async';
-
-import 'package:confetti/confetti.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../data/cash_categories.dart';
+import '../notifiers/cash_counter_notifier.dart';
 import '../utils/clipboard_helper.dart';
+import '../utils/easter_egg_controller.dart';
 import '../utils/receipt_formatter.dart';
-import '../widgets/category_section.dart';
+import '../widgets/cash_counter_layout.dart';
 import '../widgets/love_confetti_overlay.dart';
-import '../widgets/reset_button.dart';
 import '../widgets/total_header.dart';
 
-/// Main counting screen with total updates.
+/// Main counting screen. State is delegated to [CashCounterNotifier] and
+/// [EasterEggController]; this widget only owns UI callbacks that need context.
 class CashCounterHomePage extends StatefulWidget {
   const CashCounterHomePage({super.key});
 
@@ -19,333 +18,90 @@ class CashCounterHomePage extends StatefulWidget {
   State<CashCounterHomePage> createState() => _CashCounterHomePageState();
 }
 
-/// Holds counting state and interaction behavior.
 class _CashCounterHomePageState extends State<CashCounterHomePage> {
-  /// Duration in milliseconds that user must hold the button to trigger reset.
-  static const int resetHoldDurationMs = 2500;
-
-  /// Number of taps on the header required to trigger the easter egg.
-  static const int easterEggTapCount = 5;
-  /// Maximum gap in ms between consecutive taps that still count as a streak.
-  static const int easterEggTapWindowMs = 250;
-  /// How long the confetti animation plays after triggering.
-  static const int easterEggConfettiDurationMs = 400;
-  /// How long the love message stays visible after the first trigger.
-  static const int easterEggInitialTextDurationMs = 3000;
-  /// How many extra ms each subsequent tap adds to the message visibility.
-  static const int easterEggTextExtendMs = 1000;
-  static const String easterEggMessage = '♥️ Hab dich lieb Fiene <3 ♥️';
-
-  Timer? _resetHoldTimer;
-  Timer? _resetProgressTimer;
-  Timer? _easterEggTextHideTimer;
-  DateTime? _resetStartTime;
-  DateTime? _lastHeaderTapAt;
-  DateTime? _easterEggTextVisibleUntil;
-  late final ConfettiController _confettiController;
-  double _resetProgress = 0.0;
-
-  final Map<String, int> _counts = <String, int>{};
-  int _headerTapStreak = 0;
-  bool _isResetHolding = false;
-  bool _showEasterEgg = false;
+  late final CashCounterNotifier _notifier;
+  late final EasterEggController _easterEgg;
 
   @override
   void initState() {
     super.initState();
-    _confettiController =
-        ConfettiController(duration: const Duration(milliseconds: easterEggConfettiDurationMs));
-    for (final category in cashCategories) {
-      for (final item in category.items) {
-        _counts[item.id] = 0;
-      }
-    }
+    _notifier = CashCounterNotifier()..onResetComplete = _onResetComplete;
+    _easterEgg = EasterEggController();
   }
 
   @override
   void dispose() {
-    _resetHoldTimer?.cancel();
-    _resetProgressTimer?.cancel();
-    _easterEggTextHideTimer?.cancel();
-    _confettiController.dispose();
+    _notifier.dispose();
+    _easterEgg.dispose();
     super.dispose();
   }
 
-  /// Detects rapid repeated taps on the header to unlock the easter egg.
-  void _handleHeaderTap() {
-    if (_showEasterEgg) {
-      _handleTapDuringEasterEggText();
-      return;
-    }
-
-    final now = DateTime.now();
-    final withinWindow = _lastHeaderTapAt != null &&
-        now.difference(_lastHeaderTapAt!).inMilliseconds <= easterEggTapWindowMs;
-
-    _headerTapStreak = withinWindow ? _headerTapStreak + 1 : 1;
-    _lastHeaderTapAt = now;
-
-    if (_headerTapStreak >= easterEggTapCount) {
-      _triggerEasterEgg();
-    }
-  }
-
-  /// Resets the tap streak and starts confetti + message display.
-  void _triggerEasterEgg() {
-    _headerTapStreak = 0;
-    _lastHeaderTapAt = null;
-    _confettiController.stop();
-    _confettiController.play();
-    _extendEasterEggTextBy(
-      const Duration(milliseconds: easterEggInitialTextDurationMs),
+  void _onResetComplete() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Rechnung wurde zurückgesetzt.')),
     );
   }
 
-  /// Replays confetti and extends message time when tapped while already active.
-  void _handleTapDuringEasterEggText() {
-    _confettiController.stop();
-    _confettiController.play();
-    _extendEasterEggTextBy(
-      const Duration(milliseconds: easterEggTextExtendMs),
-    );
-  }
-
-  /// Pushes the message hide time forward by [extension] from the current deadline.
-  void _extendEasterEggTextBy(Duration extension) {
-    final now = DateTime.now();
-    final base = _easterEggTextVisibleUntil != null &&
-            _easterEggTextVisibleUntil!.isAfter(now)
-        ? _easterEggTextVisibleUntil!
-        : now;
-
-    _easterEggTextVisibleUntil = base.add(extension);
-    _easterEggTextHideTimer?.cancel();
-
-    if (!_showEasterEgg) {
-      setState(() {
-        _showEasterEgg = true;
-      });
-    }
-
-    _easterEggTextHideTimer = Timer(_easterEggTextVisibleUntil!.difference(now), () {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _showEasterEgg = false;
-      });
-      _easterEggTextVisibleUntil = null;
-    });
-  }
-
-  /// Computes the full sum based on all category item counts.
-  double get _totalValue {
-    var total = 0.0;
-    for (final category in cashCategories) {
-      for (final item in category.items) {
-        final count = _counts[item.id] ?? 0;
-        total += item.value * count;
-      }
-    }
-    return total;
-  }
-
-  /// Updates one item count while keeping values non-negative.
-  void _changeCount(String itemId, int delta) {
-    final current = _counts[itemId] ?? 0;
-    final next = (current + delta).clamp(0, 99999);
-    setState(() {
-      _counts[itemId] = next;
-    });
-  }
-
-  /// Sets one item count directly from manual number input.
-  void _setCount(String itemId, int nextValue) {
-    final next = nextValue.clamp(0, 99999);
-    setState(() {
-      _counts[itemId] = next;
-    });
-  }
-
-  /// Copies the current full receipt text to the system clipboard.
   Future<void> _copyReceiptToClipboard() async {
     final receipt = buildReceiptText(
       categories: cashCategories,
-      counts: _counts,
-      totalValue: _totalValue,
+      counts: _notifier.counts,
+      totalValue: _notifier.totalValue,
     );
 
     final copied = await copyTextToClipboard(receipt);
-    if (!mounted) {
-      return;
-    }
-
-    if (copied) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Rechnung wurde in die Zwischenablage kopiert.'),
-        ),
-      );
-      return;
-    }
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Kopieren nicht erlaubt. Bitte Browserberechtigung prüfen.'),
-      ),
-    );
-  }
-
-  /// Starts a long hold gesture that resets the complete calculation.
-  void _startResetHold() {
-    _resetHoldTimer?.cancel();
-    _resetProgressTimer?.cancel();
-    _resetStartTime = DateTime.now();
-    setState(() {
-      _isResetHolding = true;
-      _resetProgress = 0.0;
-    });
-
-    // Progress ticker: updates every 16ms for smooth animation
-    _resetProgressTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
-      if (!_isResetHolding || !mounted) {
-        _resetProgressTimer?.cancel();
-        return;
-      }
-
-      final elapsed =
-          DateTime.now().difference(_resetStartTime!).inMilliseconds;
-      final progress = (elapsed / resetHoldDurationMs).clamp(0.0, 1.0);
-
-      setState(() {
-        _resetProgress = progress;
-      });
-    });
-
-    _resetHoldTimer = Timer(Duration(milliseconds: resetHoldDurationMs), () {
-      if (!mounted) {
-        return;
-      }
-      _resetProgressTimer?.cancel();
-
-      setState(() {
-        for (final key in _counts.keys) {
-          _counts[key] = 0;
-        }
-        _isResetHolding = false;
-        _resetProgress = 0.0;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Rechnung wurde zurückgesetzt.')),
-      );
-    });
-  }
-
-  /// Cancels the reset hold when the user releases too early.
-  void _cancelResetHold() {
-    _resetHoldTimer?.cancel();
-    _resetProgressTimer?.cancel();
-    if (!_isResetHolding) {
-      return;
-    }
-    setState(() {
-      _isResetHolding = false;
-      _resetProgress = 0.0;
-    });
-  }
-
-  /// Single-column scrollable layout for narrow screens.
-  Widget _buildNarrowLayout() {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 112),
-      itemCount: cashCategories.length + 1,
-      itemBuilder: (context, index) {
-        if (index == cashCategories.length) {
-          return ResetButton(
-            isHolding: _isResetHolding,
-            progress: _resetProgress,
-            onTapDown: _startResetHold,
-            onTapUp: _cancelResetHold,
-            onTapCancel: _cancelResetHold,
-          );
-        }
-
-        final category = cashCategories[index];
-        return CategorySection(
-          category: category,
-          counts: _counts,
-          onIncrement: (id) => _changeCount(id, 1),
-          onDecrement: (id) => _changeCount(id, -1),
-          onSetCount: _setCount,
-        );
-      },
-    );
-  }
-
-  /// Three-column side-by-side layout for screens wider than 1200 px.
-  Widget _buildWideLayout() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var i = 0; i < cashCategories.length; i++)
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      left: i == 0 ? 0 : 6,
-                      right: i == cashCategories.length - 1 ? 0 : 6,
-                    ),
-                    child: CategorySection(
-                      category: cashCategories[i],
-                      counts: _counts,
-                      onIncrement: (id) => _changeCount(id, 1),
-                      onDecrement: (id) => _changeCount(id, -1),
-                      onSetCount: _setCount,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ResetButton(
-            isHolding: _isResetHolding,
-            progress: _resetProgress,
-            onTapDown: _startResetHold,
-            onTapUp: _cancelResetHold,
-            onTapCancel: _cancelResetHold,
-          ),
-        ],
+      SnackBar(
+        content: Text(
+          copied
+              ? 'Rechnung wurde in die Zwischenablage kopiert.'
+              : 'Kopieren nicht erlaubt. Bitte Browserberechtigung prüfen.',
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= 1200;
-
     return Scaffold(
       body: SafeArea(
         child: Stack(
           children: [
             Column(
               children: [
-                TotalHeader(
-                  totalValue: _totalValue,
-                  onTapDown: _handleHeaderTap,
-                  onLongPress: _copyReceiptToClipboard,
-                  centerMessage: _showEasterEgg ? easterEggMessage : null,
+                ListenableBuilder(
+                  listenable: Listenable.merge([_notifier, _easterEgg]),
+                  builder: (context, _) => TotalHeader(
+                    totalValue: _notifier.totalValue,
+                    onTapDown: _easterEgg.handleTap,
+                    onLongPress: _copyReceiptToClipboard,
+                    centerMessage:
+                        _easterEgg.showEasterEgg ? EasterEggController.message : null,
+                  ),
                 ),
                 Expanded(
-                  child: isWide ? _buildWideLayout() : _buildNarrowLayout(),
+                  child: ListenableBuilder(
+                    listenable: _notifier,
+                    builder: (context, _) => CashCounterLayout(
+                      counts: _notifier.counts,
+                      isResetHolding: _notifier.isResetHolding,
+                      resetProgress: _notifier.resetProgress,
+                      onIncrement: (id) => _notifier.changeCount(id, 1),
+                      onDecrement: (id) => _notifier.changeCount(id, -1),
+                      onSetCount: _notifier.setCount,
+                      onResetTapDown: _notifier.startResetHold,
+                      onResetTapUp: _notifier.cancelResetHold,
+                      onResetTapCancel: _notifier.cancelResetHold,
+                    ),
+                  ),
                 ),
               ],
             ),
             LoveConfettiOverlay(
-              controller: _confettiController,
+              controller: _easterEgg.confettiController,
             ),
           ],
         ),
