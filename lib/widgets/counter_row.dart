@@ -356,6 +356,7 @@ class _CounterRowState extends State<CounterRow> {
     Widget card;
     if (hasRingBorder) {
       card = Stack(
+        fit: StackFit.expand,
         children: [
           // Background: base colour + decorative ring border
           Positioned.fill(
