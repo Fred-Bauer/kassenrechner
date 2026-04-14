@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/cash_categories.dart';
+import '../utils/receipt_formatter.dart';
 import '../widgets/category_section.dart';
 import '../widgets/total_header.dart';
 
@@ -71,6 +73,26 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     });
   }
 
+  /// Copies the current full receipt text to the system clipboard.
+  Future<void> _copyReceiptToClipboard() async {
+    final receipt = buildReceiptText(
+      categories: cashCategories,
+      counts: _counts,
+      totalValue: _totalValue,
+    );
+
+    await Clipboard.setData(ClipboardData(text: receipt));
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Rechnung wurde in die Zwischenablage kopiert.'),
+      ),
+    );
+  }
+
   /// Smooth-scrolls to the requested section card by index.
   void _scrollToSection(int index) {
     if (index < 0 || index >= _sectionKeys.length) {
@@ -133,7 +155,10 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
           children: [
             Column(
               children: [
-                TotalHeader(totalValue: _totalValue),
+                TotalHeader(
+                  totalValue: _totalValue,
+                  onLongPress: _copyReceiptToClipboard,
+                ),
                 Expanded(
                   child: NotificationListener<ScrollUpdateNotification>(
                     onNotification: (notification) {

@@ -12,6 +12,8 @@ class CounterRow extends StatefulWidget {
     required this.value,
     required this.count,
     this.backgroundColor,
+    this.borderColor,
+    this.borderWidth,
     this.showValueLine = true,
     required this.onIncrement,
     required this.onDecrement,
@@ -22,6 +24,8 @@ class CounterRow extends StatefulWidget {
   final double value;
   final int count;
   final Color? backgroundColor;
+  final Color? borderColor;
+  final double? borderWidth;
   final bool showValueLine;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
@@ -125,6 +129,9 @@ class _CounterRowState extends State<CounterRow> {
         Brightness.light;
     final textColor = textIsDark ? Colors.black87 : Colors.white;
     final subTextColor = textIsDark ? Colors.black54 : Colors.white70;
+    final resolvedBorderColor =
+      widget.borderColor ?? Colors.white.withValues(alpha: 0.5);
+    final resolvedBorderWidth = widget.borderWidth ?? 1.0;
 
     return AnimatedScale(
       scale: _scale,
@@ -151,7 +158,10 @@ class _CounterRowState extends State<CounterRow> {
             decoration: BoxDecoration(
               color: baseColor,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: resolvedBorderColor,
+                width: resolvedBorderWidth,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -166,7 +176,7 @@ class _CounterRowState extends State<CounterRow> {
                         maxLines: 1,
                         textAlign: TextAlign.center,
                         style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w900,
                           fontSize: 24,
                           color: textColor,
                         ),

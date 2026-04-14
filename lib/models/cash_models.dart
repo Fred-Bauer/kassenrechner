@@ -22,10 +22,14 @@ class CashItem {
     required this.label,
     required this.value,
     this.cardColor,
+    this.borderColor,
+    this.borderWidth,
   });
 
   final String id;
   final String label;
   final double value;
   final Color? cardColor;
+  final Color? borderColor;
+  final double? borderWidth;
 }
