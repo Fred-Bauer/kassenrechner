@@ -268,7 +268,6 @@ class _CounterRowState extends State<CounterRow> {
           splashColor: Colors.white.withValues(alpha: 0.15),
           highlightColor: Colors.transparent,
           child: Container(
-            padding: contentPadding,
             decoration: BoxDecoration(
               color: baseColor,
               borderRadius: BorderRadius.circular(10),
@@ -277,12 +276,16 @@ class _CounterRowState extends State<CounterRow> {
                 width: resolvedBorderWidth,
               ),
             ),
-            child: Transform.scale(
-              scale: contentScale,
-              alignment: Alignment.center,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+            child: Stack(
+              children: [
+                Padding(
+                  padding: contentPadding,
+                  child: Transform.scale(
+                    scale: contentScale,
+                    alignment: Alignment.center,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                   if (widget.isRoll && widget.showValueLine) ...[
                     Expanded(
                       child: Transform.translate(
@@ -399,8 +402,22 @@ class _CounterRowState extends State<CounterRow> {
                     ),
                     ),
                   ),
-                ],
-              ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (widget.count == 0)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
