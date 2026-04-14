@@ -1,22 +1,31 @@
-{
+﻿{
     "name": "Kassenrechner",
     "short_name": "Kassenrechner",
     "start_url": ".",
     "display": "standalone",
 
-    "background_color": "#000000",
+    "background_color": "#2E7D32",
     "theme_color": "#000000",
-    "DEACTIVATED-background_color": "#2E7D32",
-    "DEACTIVATED-theme_color": "#2E7D32",
 
     "description": "Kassen zählen leicht gemacht!",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
         {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
             "src": "icons/Icon-512.png",
             "sizes": "512x512",
             "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
         },
         {
             "src": "icons/Icon-maskable-512.png",
