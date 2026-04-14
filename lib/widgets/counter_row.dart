@@ -380,8 +380,8 @@ class _CounterRowState extends State<CounterRow> {
                           style: IconButton.styleFrom(
                             shape: const CircleBorder(),
                             padding: EdgeInsets.zero,
-                            backgroundColor: Colors.white.withValues(alpha: 0.88),
-                            foregroundColor: Colors.black87,
+                            backgroundColor: Colors.black87,
+                            foregroundColor: Colors.white,
                           ),
                         ),
                         const SizedBox(width: 6),
