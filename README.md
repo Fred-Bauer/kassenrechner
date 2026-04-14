@@ -17,4 +17,4 @@ Tatsächlich ja.
 - [ ] Copy to Clipboard bei langem Drücken auf iOS scheint nicht zu funktionieren
 - [ ] Navigationsknöpfe entfernen
 - [ ] Münzen rund anzeigen?
-- [ ] Sehr großer Screen: Kategorien nebeneinander
+- [x] Sehr breiter Screen: Kategorien nebeneinander

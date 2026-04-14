@@ -298,10 +298,114 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildNarrowLayout() {
     final canGoUp = _currentSection > 0;
     final canGoDown = _currentSection < cashCategories.length - 1;
+
+    return Stack(
+      children: [
+        NotificationListener<ScrollUpdateNotification>(
+          onNotification: (notification) {
+            _updateCurrentSectionFromScroll();
+            return false;
+          },
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 112),
+            itemCount: cashCategories.length + 1,
+            itemBuilder: (context, index) {
+              if (index == cashCategories.length) {
+                return ResetButton(
+                  isHolding: _isResetHolding,
+                  progress: _resetProgress,
+                  onTapDown: _startResetHold,
+                  onTapUp: _cancelResetHold,
+                  onTapCancel: _cancelResetHold,
+                );
+              }
+
+              final category = cashCategories[index];
+              return CategorySection(
+                key: _sectionKeys[index],
+                category: category,
+                counts: _counts,
+                onIncrement: (id) => _changeCount(id, 1),
+                onDecrement: (id) => _changeCount(id, -1),
+                onSetCount: _setCount,
+              );
+            },
+          ),
+        ),
+        Positioned(
+          right: 16,
+          bottom: 20,
+          child: Column(
+            children: [
+              FloatingActionButton.small(
+                heroTag: 'scroll-up',
+                onPressed: canGoUp
+                    ? () => _scrollToSection(_currentSection - 1)
+                    : null,
+                child: const Icon(Icons.keyboard_arrow_up_rounded),
+              ),
+              const SizedBox(height: 10),
+              FloatingActionButton.small(
+                heroTag: 'scroll-down',
+                onPressed: canGoDown
+                    ? () => _scrollToSection(_currentSection + 1)
+                    : null,
+                child: const Icon(Icons.keyboard_arrow_down_rounded),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWideLayout() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < cashCategories.length; i++)
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: i == 0 ? 0 : 6,
+                      right: i == cashCategories.length - 1 ? 0 : 6,
+                    ),
+                    child: CategorySection(
+                      key: _sectionKeys[i],
+                      category: cashCategories[i],
+                      counts: _counts,
+                      onIncrement: (id) => _changeCount(id, 1),
+                      onDecrement: (id) => _changeCount(id, -1),
+                      onSetCount: _setCount,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ResetButton(
+            isHolding: _isResetHolding,
+            progress: _resetProgress,
+            onTapDown: _startResetHold,
+            onTapUp: _cancelResetHold,
+            onTapCancel: _cancelResetHold,
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width >= 1200;
 
     return Scaffold(
       body: SafeArea(
@@ -316,63 +420,9 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
                   centerMessage: _showEasterEgg ? easterEggMessage : null,
                 ),
                 Expanded(
-                  child: NotificationListener<ScrollUpdateNotification>(
-                    onNotification: (notification) {
-                      _updateCurrentSectionFromScroll();
-                      return false;
-                    },
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 112),
-                      itemCount: cashCategories.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == cashCategories.length) {
-                          return ResetButton(
-                            isHolding: _isResetHolding,
-                            progress: _resetProgress,
-                            onTapDown: _startResetHold,
-                            onTapUp: _cancelResetHold,
-                            onTapCancel: _cancelResetHold,
-                          );
-                        }
-
-                        final category = cashCategories[index];
-                        return CategorySection(
-                          key: _sectionKeys[index],
-                          category: category,
-                          counts: _counts,
-                          onIncrement: (id) => _changeCount(id, 1),
-                          onDecrement: (id) => _changeCount(id, -1),
-                          onSetCount: _setCount,
-                        );
-                      },
-                    ),
-                  ),
+                  child: isWide ? _buildWideLayout() : _buildNarrowLayout(),
                 ),
               ],
-            ),
-            Positioned(
-              right: 16,
-              bottom: 20,
-              child: Column(
-                children: [
-                  FloatingActionButton.small(
-                    heroTag: 'scroll-up',
-                    onPressed: canGoUp
-                        ? () => _scrollToSection(_currentSection - 1)
-                        : null,
-                    child: const Icon(Icons.keyboard_arrow_up_rounded),
-                  ),
-                  const SizedBox(height: 10),
-                  FloatingActionButton.small(
-                    heroTag: 'scroll-down',
-                    onPressed: canGoDown
-                        ? () => _scrollToSection(_currentSection + 1)
-                        : null,
-                    child: const Icon(Icons.keyboard_arrow_down_rounded),
-                  ),
-                ],
-              ),
             ),
             LoveConfettiOverlay(
               controller: _confettiController,
