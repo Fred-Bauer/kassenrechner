@@ -105,6 +105,8 @@ class CategorySection extends StatelessWidget {
               // Only use one-column mode in real emergency width situations.
               final isEmergencyWidth = constraints.maxWidth < 320;
               final useSingleColumn = isEmergencyWidth && category.title == 'Rollen';
+              final promoteRingCoinsOnSmall =
+                  category.title == 'Münzen' && constraints.maxWidth < 380;
               // Outside emergency mode, keep two columns and only make tiles a bit taller.
               final tileAspectRatio = constraints.maxWidth < 360 ? 1.75 : 1.95;
               final rows = <Widget>[];
@@ -123,12 +125,28 @@ class CategorySection extends StatelessWidget {
                   );
                 }
               } else {
-                for (var i = 0; i < sortedItems.length; i += 2) {
+                var i = 0;
+                while (i < sortedItems.length) {
                   final left = sortedItems[i];
                   final isLastSingle = i == sortedItems.length - 1;
                   final leftTitle = category.useValueAsLabel
                       ? formatValueLabel(left.value)
                       : left.label;
+
+                  final leftIsRingCoin =
+                      left.id == 'muenze_1' || left.id == 'muenze_2';
+                  if (promoteRingCoinsOnSmall && leftIsRingCoin) {
+                    rows.add(
+                      _buildCounterTile(
+                        left,
+                        leftTitle,
+                        isWide: true,
+                        tileAspectRatio: tileAspectRatio,
+                      ),
+                    );
+                    i += 1;
+                    continue;
+                  }
 
                   if (isLastSingle && category.title == 'Scheine' && left.id == 'schein_500') {
                     // The final 500 EUR note spans full width for a balanced odd-count layout.
@@ -140,6 +158,7 @@ class CategorySection extends StatelessWidget {
                         tileAspectRatio: tileAspectRatio,
                       ),
                     );
+                    i += 1;
                     continue;
                   }
 
@@ -159,6 +178,7 @@ class CategorySection extends StatelessWidget {
                         ],
                       ),
                     );
+                    i += 1;
                     continue;
                   }
 
@@ -166,6 +186,36 @@ class CategorySection extends StatelessWidget {
                   final rightTitle = category.useValueAsLabel
                       ? formatValueLabel(right.value)
                       : right.label;
+
+                  final rightIsRingCoin =
+                      right.id == 'muenze_1' || right.id == 'muenze_2';
+                  if (promoteRingCoinsOnSmall && rightIsRingCoin) {
+                    rows.add(
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildCounterTile(
+                              left,
+                              leftTitle,
+                              tileAspectRatio: tileAspectRatio,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Expanded(child: SizedBox.shrink()),
+                        ],
+                      ),
+                    );
+                    rows.add(
+                      _buildCounterTile(
+                        right,
+                        rightTitle,
+                        isWide: true,
+                        tileAspectRatio: tileAspectRatio,
+                      ),
+                    );
+                    i += 2;
+                    continue;
+                  }
 
                   rows.add(
                     Row(
@@ -188,6 +238,7 @@ class CategorySection extends StatelessWidget {
                       ],
                     ),
                   );
+                  i += 2;
                 }
               }
 
