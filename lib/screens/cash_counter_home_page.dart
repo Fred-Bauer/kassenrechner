@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../data/cash_categories.dart';
+import '../utils/clipboard_helper.dart';
 import '../utils/receipt_formatter.dart';
 import '../widgets/category_section.dart';
 import '../widgets/love_confetti_overlay.dart';
@@ -166,14 +166,23 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
       totalValue: _totalValue,
     );
 
-    await Clipboard.setData(ClipboardData(text: receipt));
+    final copied = await copyTextToClipboard(receipt);
     if (!mounted) {
+      return;
+    }
+
+    if (copied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Rechnung wurde in die Zwischenablage kopiert.'),
+        ),
+      );
       return;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Rechnung wurde in die Zwischenablage kopiert.'),
+        content: Text('Kopieren nicht erlaubt. Bitte Browserberechtigung prüfen.'),
       ),
     );
   }
