@@ -1,3 +1,3 @@
 # kassenrechner
 
-Flutter Kassenrechner als Web-App.
+Ein intuitiver Kassenrechner als Web-App für Fiene <3

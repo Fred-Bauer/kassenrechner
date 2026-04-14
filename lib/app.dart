@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'screens/cash_counter_home_page.dart';
 
@@ -8,11 +9,23 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final baseTheme = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF2E7D32),
+        brightness: Brightness.dark,
+      ),
+    );
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF005A9C),
+      theme: baseTheme.copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        canvasColor: Colors.black,
+        textTheme: GoogleFonts.montserratTextTheme(baseTheme.textTheme),
+        primaryTextTheme: GoogleFonts.montserratTextTheme(
+          baseTheme.primaryTextTheme,
+        ),
       ),
       home: const CashCounterHomePage(),
     );

@@ -63,6 +63,14 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
     });
   }
 
+  /// Sets one item count directly from manual number input.
+  void _setCount(String itemId, int nextValue) {
+    final next = nextValue.clamp(0, 99999);
+    setState(() {
+      _counts[itemId] = next;
+    });
+  }
+
   /// Smooth-scrolls to the requested section card by index.
   void _scrollToSection(int index) {
     if (index < 0 || index >= _sectionKeys.length) {
@@ -116,7 +124,6 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final canGoUp = _currentSection > 0;
     final canGoDown = _currentSection < cashCategories.length - 1;
 
@@ -145,6 +152,7 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
                           counts: _counts,
                           onIncrement: (id) => _changeCount(id, 1),
                           onDecrement: (id) => _changeCount(id, -1),
+                          onSetCount: _setCount,
                         );
                       },
                     ),
@@ -173,21 +181,6 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
                     child: const Icon(Icons.keyboard_arrow_down_rounded),
                   ),
                 ],
-              ),
-            ),
-            Positioned(
-              left: 16,
-              bottom: 24,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Bereich ${_currentSection + 1}/${cashCategories.length}: ${cashCategories[_currentSection].title}',
-                  style: theme.textTheme.labelLarge,
-                ),
               ),
             ),
           ],

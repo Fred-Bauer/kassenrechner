@@ -3,3 +3,13 @@ String formatCurrency(double value) {
   final fixed = value.toStringAsFixed(2).replaceAll('.', ',');
   return '$fixed EUR';
 }
+
+/// Formats a unit value label like '5 €' or '0,5 €'.
+String formatValueLabel(double value) {
+  final asText = value.toStringAsFixed(2);
+  final compact = asText
+      .replaceFirst(RegExp(r'0+$'), '')
+      .replaceFirst(RegExp(r'\.$'), '')
+      .replaceAll('.', ',');
+  return '$compact€';
+}
