@@ -9,8 +9,8 @@ import 'package:flutter/foundation.dart';
 /// whenever the header is tapped. Use [showEasterEgg] and [message] to
 /// drive the UI, and pass [confettiController] to the confetti overlay.
 class EasterEggController extends ChangeNotifier {
-  static const int _tapCount = 8;
-  static const int _tapWindowMs = 500;
+  static const int _tapCount = 10;
+  static const int _tapWindowMs = 250;
   static const int _confettiDurationMs = 400;
   static const int _initialTextDurationMs = 3000;
   static const int _textExtendMs = 1000;
