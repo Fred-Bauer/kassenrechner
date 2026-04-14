@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/cash_categories.dart';
 import '../utils/receipt_formatter.dart';
 import '../widgets/category_section.dart';
+import '../widgets/love_confetti_overlay.dart';
 import '../widgets/reset_button.dart';
 import '../widgets/total_header.dart';
 
@@ -22,10 +24,21 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
   /// Duration in milliseconds that user must hold the button to trigger reset.
   static const int resetHoldDurationMs = 2500;
 
+  static const int easterEggTapCount = 5;
+  static const int easterEggTapWindowMs = 250;
+  static const int easterEggConfettiDurationMs = 400;
+  static const int easterEggInitialTextDurationMs = 5000;
+  static const int easterEggTextExtendMs = 1000;
+  static const String easterEggMessage = '♥️ Hab dich lieb Fiene <3 ♥️';
+
   final ScrollController _scrollController = ScrollController();
   Timer? _resetHoldTimer;
   Timer? _resetProgressTimer;
+  Timer? _easterEggTextHideTimer;
   DateTime? _resetStartTime;
+  DateTime? _lastHeaderTapAt;
+  DateTime? _easterEggTextVisibleUntil;
+  late final ConfettiController _confettiController;
   double _resetProgress = 0.0;
   final List<GlobalKey> _sectionKeys = List<GlobalKey>.generate(
     cashCategories.length,
@@ -34,11 +47,15 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
 
   final Map<String, int> _counts = <String, int>{};
   int _currentSection = 0;
+  int _headerTapStreak = 0;
   bool _isResetHolding = false;
+  bool _showEasterEgg = false;
 
   @override
   void initState() {
     super.initState();
+    _confettiController =
+        ConfettiController(duration: const Duration(milliseconds: easterEggConfettiDurationMs));
     for (final category in cashCategories) {
       for (final item in category.items) {
         _counts[item.id] = 0;
@@ -53,8 +70,73 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
   void dispose() {
     _resetHoldTimer?.cancel();
     _resetProgressTimer?.cancel();
+    _easterEggTextHideTimer?.cancel();
+    _confettiController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _handleHeaderTap() {
+    if (_showEasterEgg) {
+      _handleTapDuringEasterEggText();
+      return;
+    }
+
+    final now = DateTime.now();
+    final withinWindow = _lastHeaderTapAt != null &&
+        now.difference(_lastHeaderTapAt!).inMilliseconds <= easterEggTapWindowMs;
+
+    _headerTapStreak = withinWindow ? _headerTapStreak + 1 : 1;
+    _lastHeaderTapAt = now;
+
+    if (_headerTapStreak >= easterEggTapCount) {
+      _triggerEasterEgg();
+    }
+  }
+
+  void _triggerEasterEgg() {
+    _headerTapStreak = 0;
+    _lastHeaderTapAt = null;
+    _confettiController.stop();
+    _confettiController.play();
+    _extendEasterEggTextBy(
+      const Duration(milliseconds: easterEggInitialTextDurationMs),
+    );
+  }
+
+  void _handleTapDuringEasterEggText() {
+    _confettiController.stop();
+    _confettiController.play();
+    _extendEasterEggTextBy(
+      const Duration(milliseconds: easterEggTextExtendMs),
+    );
+  }
+
+  void _extendEasterEggTextBy(Duration extension) {
+    final now = DateTime.now();
+    final base = _easterEggTextVisibleUntil != null &&
+            _easterEggTextVisibleUntil!.isAfter(now)
+        ? _easterEggTextVisibleUntil!
+        : now;
+
+    _easterEggTextVisibleUntil = base.add(extension);
+    _easterEggTextHideTimer?.cancel();
+
+    if (!_showEasterEgg) {
+      setState(() {
+        _showEasterEgg = true;
+      });
+    }
+
+    _easterEggTextHideTimer = Timer(_easterEggTextVisibleUntil!.difference(now), () {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _showEasterEgg = false;
+      });
+      _easterEggTextVisibleUntil = null;
+    });
   }
 
   /// Computes the full sum based on all category item counts.
@@ -229,7 +311,9 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
               children: [
                 TotalHeader(
                   totalValue: _totalValue,
+                  onTapDown: _handleHeaderTap,
                   onLongPress: _copyReceiptToClipboard,
+                  centerMessage: _showEasterEgg ? easterEggMessage : null,
                 ),
                 Expanded(
                   child: NotificationListener<ScrollUpdateNotification>(
@@ -289,6 +373,9 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
                   ),
                 ],
               ),
+            ),
+            LoveConfettiOverlay(
+              controller: _confettiController,
             ),
           ],
         ),
