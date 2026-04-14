@@ -38,13 +38,13 @@ const List<CashCategory> cashCategories = [
     useValueAsLabel: true,
     items: [
       CashItem(id: 'muenze_2', label: '2€ Münze', value: 2.0, cardColor: Color(0xFFC0C6CF)),
-      CashItem(id: 'muenze_1', label: '1€ Münze', value: 1.0, cardColor: Color(0xFFD4AF37)),
+      CashItem(id: 'muenze_1', label: '1€ Münze', value: 1.0, cardColor: Color(0xFFC9A227)),
       CashItem(id: 'muenze_50c', label: '50ct Münze', value: 0.5, cardColor: Color(0xFFC9A227)),
       CashItem(id: 'muenze_20c', label: '20ct Münze', value: 0.2, cardColor: Color(0xFFD8B23F)),
-      CashItem(id: 'muenze_10c', label: '10ct Münze', value: 0.1, cardColor: Color(0xFFE0BF59)),
-      CashItem(id: 'muenze_5c', label: '5ct Münze', value: 0.05, cardColor: Color(0xFFB66A3C)),
+      CashItem(id: 'muenze_10c', label: '10ct Münze', value: 0.1, cardColor: Color(0xFFD8B23F)),
+      CashItem(id: 'muenze_5c', label: '5ct Münze', value: 0.05, cardColor: Color(0xFFC87848)),
       CashItem(id: 'muenze_2c', label: '2ct Münze', value: 0.02, cardColor: Color(0xFFC87848)),
-      CashItem(id: 'muenze_1c', label: '1ct Münze', value: 0.01, cardColor: Color(0xFFD98A5C)),
+      CashItem(id: 'muenze_1c', label: '1ct Münze', value: 0.01, cardColor: Color(0xFFC87848)),
     ],
   ),
 ];
