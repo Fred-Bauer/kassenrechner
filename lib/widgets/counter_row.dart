@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../utils/currency_formatter.dart';
+import 'counter_set_dialogs.dart';
 
 /// Single quick counter card with tap and long-press actions.
 class CounterRow extends StatefulWidget {
@@ -76,146 +77,16 @@ class _CounterRowState extends State<CounterRow> {
 
   /// Opens a dialog to set an exact counter value via keyboard.
   Future<void> _showSetCountDialog(BuildContext context) async {
-    if (widget.isCoin) {
-      return _showCoinSetDialog(context);
-    }
-
-    final controller = TextEditingController(text: '${widget.count}');
-
     final result = await showDialog<int>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(widget.title),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Anzahl',
-              border: OutlineInputBorder(),
-            ),
-            onSubmitted: (value) {
-              final parsed = int.tryParse(value.trim());
-              if (parsed != null && parsed >= 0) {
-                Navigator.of(context).pop(parsed);
-              }
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Abbrechen'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final parsed = int.tryParse(controller.text.trim());
-                if (parsed != null && parsed >= 0) {
-                  Navigator.of(context).pop(parsed);
-                }
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => widget.isCoin
+          ? CoinSetDialog(
+              title: widget.title,
+              coinValue: widget.value,
+              initialCount: widget.count,
+            )
+          : CountSetDialog(title: widget.title, initialCount: widget.count),
     );
-
-    if (result != null) {
-      widget.onSetCount(result);
-    }
-  }
-
-  /// Opens a dual-field dialog for coins (sum and count fields).
-  Future<void> _showCoinSetDialog(BuildContext context) async {
-    final sumController = TextEditingController();
-    final countController = TextEditingController(text: '${widget.count}');
-
-    final result = await showDialog<int>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(widget.title),
-          content: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: sumController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Summe (€)',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (value) {
-                      if (value.isNotEmpty) {
-                        setState(() {
-                          countController.clear();
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: countController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Anzahl',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (value) {
-                      if (value.isNotEmpty) {
-                        setState(() {
-                          sumController.clear();
-                        });
-                      }
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Abbrechen'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final sumText = sumController.text.trim();
-                final countText = countController.text.trim();
-
-                int parsed = 0;
-
-                if (sumText.isNotEmpty) {
-                  // Sum was entered, calculate count from it
-                  final sum = double.tryParse(sumText);
-                  if (sum != null && sum >= 0) {
-                    parsed = (sum / widget.value).round();
-                  } else {
-                    return;
-                  }
-                } else if (countText.isNotEmpty) {
-                  // Count was entered
-                  parsed = int.tryParse(countText) ?? 0;
-                  if (parsed < 0) {
-                    return;
-                  }
-                }
-
-                Navigator.of(context).pop(parsed);
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-
     if (result != null) {
       widget.onSetCount(result);
     }
@@ -228,13 +99,13 @@ class _CounterRowState extends State<CounterRow> {
     // Keep per-item colors but make them flatter and lighter.
     final rawColor = widget.backgroundColor ?? theme.colorScheme.surface;
     final baseColor = Color.lerp(rawColor, Colors.white, 0.45) ?? rawColor;
-    final textIsDark = ThemeData.estimateBrightnessForColor(baseColor) ==
-        Brightness.light;
+    final textIsDark =
+        ThemeData.estimateBrightnessForColor(baseColor) == Brightness.light;
     final textColor = textIsDark ? Colors.black87 : Colors.white;
     final subTextColor = textIsDark ? Colors.black54 : Colors.white70;
     final hasRingBorder = widget.borderColor != null;
     final resolvedBorderColor =
-      widget.borderColor ?? Colors.white.withValues(alpha: 0.5);
+        widget.borderColor ?? Colors.white.withValues(alpha: 0.5);
     final resolvedBorderWidth = widget.borderWidth ?? 1.0;
 
     // Build the content column – identical for ALL items, ring coins included.
@@ -316,7 +187,10 @@ class _CounterRowState extends State<CounterRow> {
                   },
                   icon: const Icon(Icons.remove),
                   visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints.tightFor(width: 34, height: 34),
+                  constraints: const BoxConstraints.tightFor(
+                    width: 34,
+                    height: 34,
+                  ),
                   style: IconButton.styleFrom(
                     shape: const CircleBorder(),
                     padding: EdgeInsets.zero,
