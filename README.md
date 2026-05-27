@@ -15,9 +15,11 @@ Tatsächlich ja.
 - [x] Anzeige auf sehr kleinen Geräten
 - [x] Rollen - zu kleine Schrift → Label und Value nebeneinander?
 - [x] 1€ und 2€ Schrift über Rand
+- [ ] Bei iOS funktioniert das Einblenden der Tastatur nicht korrekt
 - [ ] Copy to Clipboard bei langem Drücken auf iOS scheint nicht zu funktionieren
 - [x] Navigationsknöpfe entfernen
 - [ ] Münzen rund anzeigen?
 - [x] Sehr breiter Screen: Kategorien nebeneinander
 - [x] Uh und vielleicht kannst du das kassenicon ein bisschen kleiner machen? Damit es nicht abgeschnitten ist? 👉👈😅
 - [x] -1500
+- [ ] Per Cookies die Rollenwerte speichern
