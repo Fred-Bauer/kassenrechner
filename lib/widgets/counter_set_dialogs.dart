@@ -63,7 +63,6 @@ class _CountSetDialogState extends State<CountSetDialog> {
             border: OutlineInputBorder(),
           ),
           onEditingComplete: _submit,
-          onSubmitted: (_) => _submit(),
         ),
         actions: [
           TextButton(
@@ -172,7 +171,6 @@ class _CoinSetDialogState extends State<CoinSetDialog> {
                 }
               },
               onEditingComplete: _submit,
-              onSubmitted: (_) => _submit(),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -191,7 +189,6 @@ class _CoinSetDialogState extends State<CoinSetDialog> {
                 }
               },
               onEditingComplete: _submit,
-              onSubmitted: (_) => _submit(),
             ),
           ],
         ),

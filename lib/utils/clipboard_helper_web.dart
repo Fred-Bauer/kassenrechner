@@ -1,13 +1,9 @@
 import 'dart:js_interop';
-import 'dart:js_util' as js_util;
 
 import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 
 import 'clipboard_copy_result.dart';
-
-@JS('navigator.clipboard.writeText')
-external JSPromise<JSAny?> _clipboardWriteText(JSString text);
 
 void _logClipboardFailure(String stage, Object error) {
   if (!kDebugMode) {
@@ -25,15 +21,8 @@ void _logClipboardFailure(String stage, Object error) {
 }
 
 Future<ClipboardCopyResult> _shareTextFallback(String text) async {
-  if (!js_util.hasProperty(web.window.navigator, 'share')) {
-    return ClipboardCopyResult.failed;
-  }
-
   try {
-    final shareData = js_util.jsify(<String, String>{'text': text});
-    await js_util.promiseToFuture<Object?>(
-      js_util.callMethod<Object?>(web.window.navigator, 'share', [shareData]),
-    );
+    await web.window.navigator.share(web.ShareData(text: text)).toDart;
     return ClipboardCopyResult.shared;
   } catch (error) {
     _logClipboardFailure('navigator.share', error);
@@ -46,7 +35,7 @@ Future<ClipboardCopyResult> copyTextToClipboard(String text) async {
   // um den iOS-Safari-Gesture-Context nicht durch Flutter-MethodChannel-
   // Microtasks zu verlieren.
   try {
-    await _clipboardWriteText(text.toJS).toDart;
+    await web.window.navigator.clipboard.writeText(text).toDart;
     return ClipboardCopyResult.copied;
   } catch (error) {
     _logClipboardFailure('navigator.clipboard.writeText', error);
