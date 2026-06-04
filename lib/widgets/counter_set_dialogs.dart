@@ -17,16 +17,25 @@ class CountSetDialog extends StatefulWidget {
 
 class _CountSetDialogState extends State<CountSetDialog> {
   late final TextEditingController _controller;
+  late final FocusNode _inputFocusNode;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: '${widget.initialCount}');
+    _inputFocusNode = FocusNode();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _inputFocusNode.requestFocus();
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _inputFocusNode.dispose();
     super.dispose();
   }
 
@@ -39,26 +48,31 @@ class _CountSetDialogState extends State<CountSetDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.title),
-      content: TextField(
-        controller: _controller,
-        keyboardType: TextInputType.number,
-        inputFormatters: [DigitsOnlyFormatter()],
-        autofocus: true,
-        decoration: const InputDecoration(
-          labelText: 'Anzahl',
-          border: OutlineInputBorder(),
+    return _DialogEnterSubmit(
+      onSubmit: _submit,
+      child: AlertDialog(
+        title: Text(widget.title),
+        content: TextField(
+          controller: _controller,
+          focusNode: _inputFocusNode,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.done,
+          inputFormatters: [DigitsOnlyFormatter()],
+          decoration: const InputDecoration(
+            labelText: 'Anzahl',
+            border: OutlineInputBorder(),
+          ),
+          onEditingComplete: _submit,
+          onSubmitted: (_) => _submit(),
         ),
-        onSubmitted: (_) => _submit(),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(onPressed: _submit, child: const Text('OK')),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Abbrechen'),
-        ),
-        FilledButton(onPressed: _submit, child: const Text('OK')),
-      ],
     );
   }
 }
@@ -82,6 +96,8 @@ class CoinSetDialog extends StatefulWidget {
 class _CoinSetDialogState extends State<CoinSetDialog> {
   late final TextEditingController _sumController;
   late final TextEditingController _countController;
+  late final FocusNode _sumFocusNode;
+  late final FocusNode _countFocusNode;
 
   @override
   void initState() {
@@ -90,12 +106,22 @@ class _CoinSetDialogState extends State<CoinSetDialog> {
     _countController = TextEditingController(
       text: widget.initialCount > 0 ? '${widget.initialCount}' : '',
     );
+    _sumFocusNode = FocusNode();
+    _countFocusNode = FocusNode();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _sumFocusNode.requestFocus();
+    });
   }
 
   @override
   void dispose() {
     _sumController.dispose();
     _countController.dispose();
+    _sumFocusNode.dispose();
+    _countFocusNode.dispose();
     super.dispose();
   }
 
@@ -123,48 +149,95 @@ class _CoinSetDialogState extends State<CoinSetDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.title),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _sumController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [DecimalInputFormatter()],
-            autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Summe (€)',
-              border: OutlineInputBorder(),
+    return _DialogEnterSubmit(
+      onSubmit: _submit,
+      child: AlertDialog(
+        title: Text(widget.title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _sumController,
+              focusNode: _sumFocusNode,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              textInputAction: TextInputAction.done,
+              inputFormatters: [DecimalInputFormatter()],
+              decoration: const InputDecoration(
+                labelText: 'Summe (€)',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                if (value.isNotEmpty) {
+                  setState(() => _countController.clear());
+                }
+              },
+              onEditingComplete: _submit,
+              onSubmitted: (_) => _submit(),
             ),
-            onChanged: (value) {
-              if (value.isNotEmpty) setState(() => _countController.clear());
-            },
-            onSubmitted: (_) => _submit(),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _countController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [DigitsOnlyFormatter()],
-            decoration: const InputDecoration(
-              labelText: 'Anzahl',
-              border: OutlineInputBorder(),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _countController,
+              focusNode: _countFocusNode,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
+              inputFormatters: [DigitsOnlyFormatter()],
+              decoration: const InputDecoration(
+                labelText: 'Anzahl',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                if (value.isNotEmpty) {
+                  setState(() => _sumController.clear());
+                }
+              },
+              onEditingComplete: _submit,
+              onSubmitted: (_) => _submit(),
             ),
-            onChanged: (value) {
-              if (value.isNotEmpty) setState(() => _sumController.clear());
-            },
-            onSubmitted: (_) => _submit(),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Abbrechen'),
           ),
+          FilledButton(onPressed: _submit, child: const Text('OK')),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Abbrechen'),
+    );
+  }
+}
+
+/// Captures Enter/NumpadEnter on dialog level and forwards it to submit.
+class _DialogEnterSubmit extends StatelessWidget {
+  const _DialogEnterSubmit({
+    required this.onSubmit,
+    required this.child,
+  });
+
+  final VoidCallback onSubmit;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Shortcuts(
+      shortcuts: const <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+        SingleActivator(LogicalKeyboardKey.numpadEnter): ActivateIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              onSubmit();
+              return null;
+            },
+          ),
+        },
+        child: Focus(
+          autofocus: true,
+          child: child,
         ),
-        FilledButton(onPressed: _submit, child: const Text('OK')),
-      ],
+      ),
     );
   }
 }
