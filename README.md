@@ -22,4 +22,4 @@ Tatsächlich ja.
 - [x] Sehr breiter Screen: Kategorien nebeneinander
 - [x] Uh und vielleicht kannst du das kassenicon ein bisschen kleiner machen? Damit es nicht abgeschnitten ist? 👉👈😅
 - [x] -1500
-- [ ] Per Cookies die Rollenwerte speichern
+- [x] Per LocalStorage die Rollenwerte speichern
