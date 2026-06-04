@@ -1,6 +1,9 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:async';
+
+import 'package:flutter/material.dart';
 
 import '../data/cash_categories.dart';
+import '../utils/clipboard_copy_result.dart';
 import '../notifiers/cash_counter_notifier.dart';
 import '../utils/clipboard_helper.dart';
 import '../utils/easter_egg_controller.dart';
@@ -53,18 +56,26 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
       totalValue: _notifier.totalValue,
     );
 
-    final copied = await copyTextToClipboard(receipt);
+    final result = await copyTextToClipboard(receipt);
     if (!mounted) return;
 
+    final message = switch (result) {
+      ClipboardCopyResult.copied =>
+        'Rechnung wurde in die Zwischenablage kopiert.',
+      ClipboardCopyResult.shared =>
+        'Kopieren blockiert. Share-Dialog wurde geöffnet.',
+      ClipboardCopyResult.failed =>
+        'Kopieren nicht erlaubt. Bitte Browserberechtigung prüfen.',
+    };
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          copied
-              ? 'Rechnung wurde in die Zwischenablage kopiert.'
-              : 'Kopieren nicht erlaubt. Bitte Browserberechtigung prüfen.',
-        ),
-      ),
+      SnackBar(content: Text(message)),
     );
+  }
+
+  /// Starts copy work immediately in the long-press-start gesture phase.
+  void _copyReceiptFromLongPressStart(LongPressStartDetails _) {
+    unawaited(_copyReceiptToClipboard());
   }
 
   @override
@@ -81,7 +92,7 @@ class _CashCounterHomePageState extends State<CashCounterHomePage> {
                     totalValue: _notifier.totalValue,
                     onTap: _toggleDeductMode,
                     onTapDown: _easterEgg.handleTap,
-                    onLongPress: _copyReceiptToClipboard,
+                    onLongPressStart: _copyReceiptFromLongPressStart,
                     centerMessage:
                         _easterEgg.showEasterEgg ? EasterEggController.message : null,
                     subtractAmount: _deductMode ? 1500.0 : null,
